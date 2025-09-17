@@ -50,10 +50,26 @@ def clean_filename(text, max_length=80):
 def format_timestamp(iso_timestamp):
     """Format ISO timestamp to readable format"""
     try:
-        dt = datetime.fromisoformat(iso_timestamp.replace('Z', '+00:00'))
+        # Handle various timestamp formats
+        if 'Z' in iso_timestamp:
+            # UTC timestamp with Z suffix
+            dt = datetime.fromisoformat(iso_timestamp.replace('Z', '+00:00'))
+        elif '+' in iso_timestamp or iso_timestamp.count(':') > 2:
+            # Already has timezone info
+            dt = datetime.fromisoformat(iso_timestamp)
+        else:
+            # Naive datetime - assume local timezone
+            dt = datetime.fromisoformat(iso_timestamp)
+
+        # Remove timezone info for consistent comparison
+        if dt.tzinfo is not None:
+            dt = dt.replace(tzinfo=None)
+
         return dt.strftime('%H:%M:%S'), dt.strftime('%Y-%m-%d'), dt
-    except:
-        return iso_timestamp, iso_timestamp, datetime.now()
+    except Exception as e:
+        # Fallback: return current time if parsing fails
+        now = datetime.now()
+        return now.strftime('%H:%M:%S'), now.strftime('%Y-%m-%d'), now
 
 def extract_content(message):
     """Extract readable content from message object"""
@@ -311,11 +327,11 @@ def convert_conversation(jsonl_file, output_base_dir, config):
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write('\n'.join(md_content))
 
-        print(f"✓ Converted: {filename}")
+        print(f"[OK] Converted: {filename}")
         return output_file
 
     except Exception as e:
-        print(f"✗ Error converting {jsonl_file}: {e}")
+        print(f"[ERROR] Converting {jsonl_file}: {e}")
         import traceback
         traceback.print_exc()
         return None
@@ -373,10 +389,10 @@ def main():
     # Summary
     print("\n" + "="*60)
     print(f"Conversion Complete!")
-    print(f"✓ Successfully converted: {converted} files")
+    print(f"[SUCCESS] Converted: {converted} files")
     if failed > 0:
-        print(f"✗ Failed: {failed} files")
-    print(f"📁 Output directory: {output_dir}")
+        print(f"[FAILED] {failed} files")
+    print(f"[OUTPUT] Directory: {output_dir}")
     print("="*60)
 
 if __name__ == "__main__":
