@@ -10,7 +10,7 @@ DATE=$(date +%Y-%m-%d_%H-%M-%S)
 BACKUP_DIR="$DEST_BASE/backup_$DATE"
 MARKDOWN_DIR="$DEST_BASE"
 LOG_FILE="$DEST_BASE/backup.log"
-CONVERTER_SCRIPT="/mnt/c/Users/josh/bin/claude-to-markdown.py"
+CONVERTER_SCRIPT="/mnt/c/Users/josh/bin/claude-to-markdown-v3.py"
 
 # Create destination directories
 mkdir -p "$DEST_BASE"
